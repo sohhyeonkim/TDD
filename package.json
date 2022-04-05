@@ -1,0 +1,31 @@
+{
+  "name": "tdd",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "NODE_ENV=test mocha api/user/user.spec.js -w",
+    "start": "node bin/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sohhyeonkim/TDD.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sohhyeonkim/TDD/issues"
+  },
+  "homepage": "https://github.com/sohhyeonkim/TDD#readme",
+  "dependencies": {
+    "express": "^4.17.3",
+    "morgan": "^1.10.0",
+    "sequelize": "^6.18.0",
+    "sqlite3": "^5.0.2"
+  },
+  "devDependencies": {
+    "mocha": "^9.2.2",
+    "should": "^13.2.3",
+    "supertest": "^6.2.2"
+  }
+}
