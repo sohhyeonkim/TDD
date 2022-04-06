@@ -92,6 +92,10 @@ describe("Set up Database", () => {
       it("id가 숫자가 아닐 경우 400으로 응답한다", (done) => {
         request(app).delete("/users/one").expect(400).end(done);
       });
+
+      it("id로 유저를 찾을 수 없을 경우 404를 응답한다", (done) => {
+        request(app).delete("/users/1111").expect(404).end(done);
+      });
     });
   });
 

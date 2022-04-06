@@ -39,8 +39,11 @@ const deleteById = (req, res) => {
     where: {
       id,
     },
-  }).then(() => {
-    return res.status(204).end();
+  }).then((data) => {
+    if (data) {
+      return res.status(204).end();
+    }
+    return res.status(404).end();
   });
 };
 
