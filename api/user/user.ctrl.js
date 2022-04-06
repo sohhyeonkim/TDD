@@ -63,9 +63,40 @@ const createUser = (req, res) => {
     return res.status(409).end();
   });
 };
+
+const validationCheck = (req, res) => {
+  const userId = req.body.userId;
+  const nickname = req.body.nickname;
+  if (userId) {
+    models.User.findOne({
+      where: {
+        userId,
+      },
+    }).then((user) => {
+      if (user) {
+        return res.status(409).end();
+      }
+      return res.status(204).end();
+    });
+  }
+  if (nickname) {
+    models.User.findOne({
+      where: {
+        nickname,
+      },
+    }).then((user) => {
+      if (user) {
+        return res.status(409).end();
+      }
+      return res.status(204).end();
+    });
+  }
+};
+
 module.exports = {
   getUser,
   getUserById,
   deleteById,
   createUser,
+  validationCheck,
 };

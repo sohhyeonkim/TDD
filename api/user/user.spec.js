@@ -113,25 +113,46 @@ describe("Set up Database", () => {
       });
     });
     describe("성공시", () => {
-      it("생성된 객체를 반환한다", () => {
+      it("userId 중복확인을 통과한 경우 204를 응답한다", (done) => {
+        request(app)
+          .post("/users/validationCheck")
+          .send({ userId: "randomUserId" })
+          .expect(204)
+          .end(done);
+      });
+
+      it("nickname 중복확인을 통과한 경우 204를 응답한다", (done) => {
+        request(app)
+          .post("/users/validationCheck")
+          .send({ nickname: "randomNickname" })
+          .expect(204)
+          .end(done);
+      });
+      it("회원가입에 성공한 객체를 반환한다", () => {
         body.should.have.property("userId", user.userId);
         body.should.have.property("password", user.password);
         body.should.have.property("nickname", user.nickname);
       });
     });
     describe("실패시", () => {
-      it("userId, password, nickname 중 하나라도 없는 경우 400으로 응답한다", (done) => {
+      it("userId, password, nickname 중 하나라도 없는 경우 400을 응답한다", (done) => {
         request(app).post("/users").send({}).expect(400).end(done);
       });
 
-      it("userId 또는 nickname이 사용중인 경우 409로 응답한다", (done) => {
+      it("userId가 사용중인 경우 409를 응답한다", (done) => {
         request(app)
-          .post("/users")
+          .post("/users/validationCheck")
           .send({
             userId: "test1",
-            password: "helloworld123!",
-            nickname: "test1_nickname",
           })
+          .expect(409)
+          .end(done);
+      });
+
+      it("nicknmae이 사용중인 경우 409를 응답한다", (done) => {
+        request(app)
+          .post("/users/validationCheck")
+          .send({ nickname: "test1_nickname" })
           .expect(409)
           .end(done);
       });
