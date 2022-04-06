@@ -12,7 +12,10 @@ const User = sequelize.define("User", {
     unique: true,
   },
   password: Sequelize.STRING,
-  nickname: Sequelize.STRING,
+  nickname: {
+    type: Sequelize.STRING,
+    unique: true,
+  },
 });
 
 module.exports = {

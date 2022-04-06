@@ -94,13 +94,43 @@ describe("Set up Database", () => {
       });
     });
   });
-});
 
-// describe("suite1", () => {
-//   before(() => console.log("before1")); // 1
-//   beforeEach(() => console.log("beforeEach1")); // 3, 5
-//   after(() => console.log("after"));
-//   afterEach(() => console.log("afterEach"));
-//   it("test1", () => console.log("test1"));
-//   it("test2", () => console.log("test2"));
-// });
+  describe("POST /users", () => {
+    const user = {
+      userId: "test4",
+      password: "helloworld123!",
+      nickname: "test4_nickname",
+    };
+    let body;
+    before("create new user", (done) => {
+      models.User.create(user).then((data) => {
+        body = data;
+        done();
+      });
+    });
+    describe("성공시", () => {
+      it("생성된 객체를 반환한다", () => {
+        body.should.have.property("userId", user.userId);
+        body.should.have.property("password", user.password);
+        body.should.have.property("nickname", user.nickname);
+      });
+    });
+    describe("실패시", () => {
+      it("userId, password, nickname 중 하나라도 없는 경우 400으로 응답한다", (done) => {
+        request(app).post("/users").send({}).expect(400).end(done);
+      });
+
+      it("userId 또는 nickname이 사용중인 경우 409로 응답한다", (done) => {
+        request(app)
+          .post("/users")
+          .send({
+            userId: "test1",
+            password: "helloworld123!",
+            nickname: "test1_nickname",
+          })
+          .expect(409)
+          .end(done);
+      });
+    });
+  });
+});
