@@ -100,6 +100,9 @@ const updateUserById = (req, res) => {
   if (Number.isNaN(id)) {
     return res.status(400).end();
   }
+  if (!userId && !password && !nickname) {
+    return res.status(400).end();
+  }
   // id로 유저를 찾을 수 없는 경우 404를 응답한다
   models.User.findOne({
     where: {
@@ -108,9 +111,6 @@ const updateUserById = (req, res) => {
   }).then((user) => {
     if (!user) {
       return res.status(404).end();
-    }
-    if (!userId && !password && !nickname) {
-      return res.status(400).end();
     }
     if (userId) {
       models.User.update(
