@@ -149,12 +149,41 @@ describe("Set up Database", () => {
           .end(done);
       });
 
-      it("nicknmae이 사용중인 경우 409를 응답한다", (done) => {
+      it("nickname이 사용중인 경우 409를 응답한다", (done) => {
         request(app)
           .post("/users/validationCheck")
           .send({ nickname: "test1_nickname" })
           .expect(409)
           .end(done);
+      });
+    });
+  });
+
+  describe("PATCH /users/:id", () => {
+    const userId = "test1_patched";
+    const password = "helloworld123!_patched";
+    const nickname = "test1_nickname_patched";
+    describe("성공시", () => {
+      it("userId 변경 성공시 204를 응답한다", (done) => {
+        request(app).patch("/users/1").send({ userId }).expect(204).end(done);
+      });
+      it("비밀번호 변경 성공시 204를 응답한다", (done) => {
+        request(app).patch("/users/1").send({ password }).expect(204).end(done);
+      });
+      it("nickname 변경 성공시 204를 응답한다", (done) => {
+        request(app).patch("/users/1").send({ nickname }).expect(204).end(done);
+      });
+    });
+
+    describe("실패시", () => {
+      it("id가 숫자가 아닐 경우 400을 응답한다", (done) => {
+        request(app).patch("/users/one").send({ userId }).expect(400).end(done);
+      });
+      it("id로 유저를 찾을 수 없는 경우 404를 응답한다", (done) => {
+        request(app).patch("/users/111").send({ userId }).expect(404).end(done);
+      });
+      it("userId, password, nickname 모두 없는 경우 400을 응답한다", (done) => {
+        request(app).patch("/users/1").send({}).expect(400).end(done);
       });
     });
   });

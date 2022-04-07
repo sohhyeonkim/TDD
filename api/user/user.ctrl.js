@@ -78,8 +78,7 @@ const validationCheck = (req, res) => {
       }
       return res.status(204).end();
     });
-  }
-  if (nickname) {
+  } else if (nickname) {
     models.User.findOne({
       where: {
         nickname,
@@ -90,8 +89,64 @@ const validationCheck = (req, res) => {
       }
       return res.status(204).end();
     });
+  } else {
+    return res.status(400).end();
   }
-  return res.status(400).end();
+};
+
+const updateUserById = (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const { userId, password, nickname } = req.body;
+  if (Number.isNaN(id)) {
+    return res.status(400).end();
+  }
+  // id로 유저를 찾을 수 없는 경우 404를 응답한다
+  models.User.findOne({
+    where: {
+      id,
+    },
+  }).then((user) => {
+    if (!user) {
+      return res.status(404).end();
+    }
+    if (!userId && !password && !nickname) {
+      return res.status(400).end();
+    }
+    if (userId) {
+      models.User.update(
+        { userId },
+        {
+          where: {
+            id,
+          },
+        }
+      );
+    }
+
+    if (password) {
+      models.User.update(
+        { password },
+        {
+          where: {
+            id,
+          },
+        }
+      );
+    }
+
+    if (nickname) {
+      models.User.update(
+        { nickname },
+        {
+          where: {
+            id,
+          },
+        }
+      );
+    }
+
+    return res.status(204).end();
+  });
 };
 
 module.exports = {
@@ -100,4 +155,5 @@ module.exports = {
   deleteById,
   createUser,
   validationCheck,
+  updateUserById,
 };

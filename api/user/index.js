@@ -7,4 +7,6 @@ router.get("/:id", ctrl.getUserById);
 router.delete("/:id", ctrl.deleteById);
 router.post("/", ctrl.createUser);
 router.post("/validationCheck", ctrl.validationCheck);
+router.patch("/:id", ctrl.updateUserById);
+
 module.exports = router;
