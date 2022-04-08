@@ -99,7 +99,7 @@ describe("Set up Database", () => {
     });
   });
 
-  describe("POST /users", () => {
+  describe.only("POST /users", () => {
     const user = {
       userId: "test4",
       password: "helloworld123!",
@@ -113,6 +113,20 @@ describe("Set up Database", () => {
       });
     });
     describe("성공시", () => {
+      it("비밀번호는 암호화되어 저장되어야한다", (done) => {
+        request(app)
+          .post("/users")
+          .send({
+            userId: "test5",
+            password: "helloworld123!",
+            nickname: "test5_nickname",
+          })
+          .end((err, res) => {
+            res.body.isCreated.should.be.ok();
+            done();
+          });
+      });
+
       it("userId 중복확인을 통과한 경우 204를 응답한다", (done) => {
         request(app)
           .post("/users/validationCheck")

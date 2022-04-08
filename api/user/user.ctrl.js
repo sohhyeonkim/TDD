@@ -1,4 +1,5 @@
 const models = require("../../models");
+const createHashedPassword = require("./utils/createHashedPassword.js");
 const { Op } = require("sequelize");
 
 const getUser = (req, res) => {
@@ -47,20 +48,34 @@ const deleteById = (req, res) => {
   });
 };
 
-const createUser = (req, res) => {
+const createUser = async (req, res) => {
   const { userId, password, nickname } = req.body;
   if (!userId || !password || !nickname) {
-    return res.status(400).end();
+    return res.status(400).json({
+      isCreated: false,
+    });
   }
+  const hash = await createHashedPassword(password);
+  //console.log("[hash]: ", hash);
   models.User.findOrCreate({
     where: {
       [Op.or]: [{ userId }, { nickname }],
     },
+    defaults: {
+      userId,
+      password: hash,
+      nickname,
+    },
   }).then(([user, created]) => {
     if (created) {
-      return res.json(user);
+      //console.log(user.password);
+      return res.status(201).json({
+        isCreated: true,
+      });
     }
-    return res.status(409).end();
+    return res.status(409).json({
+      isCreated: false,
+    });
   });
 };
 
