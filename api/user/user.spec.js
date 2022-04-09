@@ -99,32 +99,31 @@ describe("Set up Database", () => {
     });
   });
 
-  describe.only("POST /users", () => {
+  describe("POST /users", () => {
     const user = {
       userId: "test4",
       password: "helloworld123!",
       nickname: "test4_nickname",
     };
     let body;
+    let statusCode;
     before("create new user", (done) => {
-      models.User.create(user).then((data) => {
-        body = data;
-        done();
-      });
+      request(app)
+        .post("/users")
+        .send(user)
+        .end((err, res) => {
+          body = res.body;
+          statusCode = res.status;
+          done();
+        });
     });
     describe("성공시", () => {
-      it("비밀번호는 암호화되어 저장되어야한다", (done) => {
-        request(app)
-          .post("/users")
-          .send({
-            userId: "test5",
-            password: "helloworld123!",
-            nickname: "test5_nickname",
-          })
-          .end((err, res) => {
-            res.body.isCreated.should.be.ok();
-            done();
-          });
+      it("비밀번호는 암호화되어 저장되어야한다", () => {
+        body.isCreated.should.be.ok();
+      });
+
+      it("회원가입에 성공시 201을 반환한다", () => {
+        statusCode.should.equal(201, statusCode);
       });
 
       it("userId 중복확인을 통과한 경우 204를 응답한다", (done) => {
@@ -141,11 +140,6 @@ describe("Set up Database", () => {
           .send({ nickname: "randomNickname" })
           .expect(204)
           .end(done);
-      });
-      it("회원가입에 성공한 객체를 반환한다", () => {
-        body.should.have.property("userId", user.userId);
-        body.should.have.property("password", user.password);
-        body.should.have.property("nickname", user.nickname);
       });
     });
     describe("실패시", () => {
