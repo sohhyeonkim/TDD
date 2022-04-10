@@ -1,8 +1,13 @@
 // 테스트코드
 const should = require("should");
+const express = require("express");
+const cookieParser = require("cookie-parser");
 const request = require("supertest");
 const app = require("../../index");
 const models = require("../../models");
+const createAccessToken = require("./utils/createAccessToken");
+const comparePasswords = require("./utils/comparePasswords");
+
 describe("Set up Database", () => {
   const users = [
     {
@@ -32,25 +37,18 @@ describe("Set up Database", () => {
   });
 
   describe("GET /users", () => {
-    describe("성공시", () => {
-      it("유저 객체를 담은 배열을 반환한다", (done) => {
-        request(app)
-          .get("/users")
-          .end((err, res) => {
-            res.body.should.be.instanceOf(Array);
-            done();
-          });
-      });
-
-      it("최대 limit 개수만큼 반환한다", (done) => {
-        request(app)
-          .get("/users?limit=2")
-          .end((err, res) => {
-            res.body.should.have.lengthOf(2);
-            done();
-          });
-      });
-    });
+    // describe("성공시", () => {
+    //   it("유저 객체를 반환한다", (done) => {
+    //     request(app)
+    //       .get("/users")
+    //       .end((err, res) => {
+    //         res.body.should.have.property("userId", "test1");
+    //         res.body.should.have.property("password", "helloworld123!");
+    //         res.body.should.have.property("nickname", "test1_nickname");
+    //         done();
+    //       });
+    //   });
+    // });
 
     describe("실패시", () => {
       it("limit이 숫자형이 아니면 400을 응답한다", (done) => {
@@ -99,7 +97,7 @@ describe("Set up Database", () => {
     });
   });
 
-  describe("POST /users", () => {
+  describe("POST /users 회원가입", () => {
     const user = {
       userId: "test4",
       password: "helloworld123!",
@@ -118,7 +116,7 @@ describe("Set up Database", () => {
         });
     });
     describe("성공시", () => {
-      it("비밀번호는 암호화되어 저장되어야한다", () => {
+      it("createHashedPassword를 통해 비밀번호는 암호화되어 저장되어야한다", () => {
         body.isCreated.should.be.ok();
       });
 
@@ -167,6 +165,57 @@ describe("Set up Database", () => {
     });
   });
 
+  describe.only("POST /users 로그인", () => {
+    beforeEach(() => {
+      app.use(express.json());
+      app.use(express.urlencoded({ extended: true }));
+      app.use(cookieParser());
+    });
+    const user = {
+      userId: "test5",
+      password: "helloworld123!",
+      nickname: "test5_nickname",
+    };
+    let hashedPassword;
+    before("create new user", (done) => {
+      request(app).post("/users").send(user).end(done);
+    });
+    before("get existing user's hashed password", (done) => {
+      models.User.findOne({
+        attributes: ["password"],
+        where: {
+          userId: user.userId,
+        },
+      }).then((password) => {
+        hashedPassword = password;
+        done();
+      });
+    });
+
+    describe("성공시", () => {
+      let accessToken;
+      it("comparePasswords는 입력받은 비밀번호와 저장된 비밀번호를 비교해 true를 반환한다", () => {
+        const isSame = comparePasswords(hashedPassword, hashedPassword);
+      });
+      it("createAccessToken 함수는 유저데이터를 기반으로 accessToken을 생성한다", () => {
+        accessToken = createAccessToken(user);
+        accessToken.should.be.ok();
+      });
+      it("loginHandler는 로그인 시 쿠키에 accessToken을 저장한다", (done) => {
+        request(app)
+          .post("/users/login")
+          .send({
+            userId: user.userId,
+            password: user.password,
+          })
+          .set("Cookie", `accessToken=${accessToken}`)
+          .set("Content-Type", "application/json")
+          .end((err, res) => {
+            res.cookies.should.have.property();
+          });
+      });
+    });
+  });
   describe("PATCH /users/:id", () => {
     const userId = "test1_patched";
     const password = "helloworld123!_patched";
