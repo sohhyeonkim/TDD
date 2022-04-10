@@ -1,16 +1,56 @@
 const models = require("../../models");
 const createHashedPassword = require("./utils/createHashedPassword.js");
+const comparePasswords = require("./utils/comparePasswords");
+const createAccessToken = require("./utils/createAccessToken");
 const { Op } = require("sequelize");
 
-const getUser = (req, res) => {
-  req.query.limit = req.query.limit || 10;
-  const limit = parseInt(req.query.limit, 10);
-  if (Number.isNaN(limit)) {
-    return res.status(400).end();
+const loginhandler = async (req, res) => {
+  try {
+    const existingUser = getUser(req);
+    console.log("[existingUser]: ", existingUser);
+    if (!existingUser) {
+      return res.status(400).send({
+        message: "user not found",
+      });
+    }
+    const hashedPassword = await createHashedPassword(req.body.password);
+    const isSame = comparePasswords(existingUser.password, hashedPassword);
+    if (isSame) {
+      delete existingUser.password;
+      const accessToken = createAccessToken(existingUser);
+      res
+        .cookie("accessToken", accessToken, {
+          maxAge: 1000 * 60 * 60,
+          httpOnly: true,
+          secure: true,
+          sameSite: none,
+        })
+        .status(200)
+        .json({
+          isLogin: true,
+        })
+        .end();
+    } else {
+      return res.status(400).json({
+        isLogin: false,
+        message: "wrong password",
+      });
+    }
+  } catch (err) {
+    console.log(err);
   }
+};
 
-  models.User.findAll({ limit }).then((users) => {
-    return res.json(users);
+const getUser = (req, res) => {
+  models.User.findOne({
+    where: {
+      userId: req.body.userId,
+    },
+  }).then((user) => {
+    if (!user) return res.json({ data: null });
+    else {
+      return res.json(user);
+    }
   });
 };
 
@@ -165,6 +205,7 @@ const updateUserById = (req, res) => {
 };
 
 module.exports = {
+  loginhandler,
   getUser,
   getUserById,
   deleteById,
