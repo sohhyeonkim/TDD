@@ -98,7 +98,7 @@ describe("Set up Database", () => {
     };
     let body;
     let statusCode;
-    beforeEach("create new user", (done) => {
+    before("create new user", (done) => {
       request(app)
         .post("/users")
         .send(user)
@@ -110,7 +110,7 @@ describe("Set up Database", () => {
     });
     describe("성공시", () => {
       it("createHashedPassword를 통해 비밀번호는 암호화되어 저장되어야한다", () => {
-        body.isCreated.should.be.ok();
+        body.isCreated.should.be.true();
       });
 
       it("회원가입에 성공시 201을 반환한다", () => {
