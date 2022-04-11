@@ -32,20 +32,23 @@ describe("Set up Database", () => {
       nickname: "test7_nickname",
     },
   ];
-  beforeEach(() => {
+  beforeEach("setting middleware", () => {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(cookieParser());
   });
+
   beforeEach("sync DB", (done) => {
     models.sequelize.sync({ force: true }).then(() => {
       done();
     });
   });
-  beforeEach("bulk insert data", (done) => {
-    models.User.bulkCreate(users);
-    done();
-  });
+
+  for (const user of users) {
+    beforeEach("insert data", (done) => {
+      request(app).post("/users").send(user).end(done);
+    });
+  }
 
   describe("GET /users/:id", () => {
     describe("성공시", () => {
@@ -174,6 +177,7 @@ describe("Set up Database", () => {
           userId: user.userId,
         },
       }).then((password) => {
+        //console.log("[hashed password from login]: ", password);
         hashedPassword = password;
         done();
       });
