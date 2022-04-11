@@ -6,14 +6,20 @@ const { Op } = require("sequelize");
 
 const loginhandler = async (req, res) => {
   try {
-    const existingUser = getUser(req);
-    console.log("[existingUser]: ", existingUser);
+    if (!req.body.userId && !req.body.password) {
+      return res.status(400).send({
+        message: "userId or password not provided",
+      });
+    }
+    const existingUser = await getUserByUserId(req.body.userId);
+
     if (!existingUser) {
       return res.status(400).send({
         message: "user not found",
       });
     }
     const hashedPassword = await createHashedPassword(req.body.password);
+
     const isSame = comparePasswords(existingUser.password, hashedPassword);
     if (isSame) {
       delete existingUser.password;
@@ -41,17 +47,17 @@ const loginhandler = async (req, res) => {
   }
 };
 
-const getUser = (req, res) => {
-  models.User.findOne({
-    where: {
-      userId: req.body.userId,
-    },
-  }).then((user) => {
-    if (!user) return res.json({ data: null });
-    else {
-      return res.json(user);
-    }
-  });
+const getUserByUserId = async (userId) => {
+  try {
+    const existingUser = await models.User.findOne({
+      where: {
+        userId,
+      },
+    });
+    return existingUser;
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 const getUserById = (req, res) => {
@@ -128,6 +134,7 @@ const validationCheck = (req, res) => {
         userId,
       },
     }).then((user) => {
+      //console.log(user);
       if (user) {
         return res.status(409).end();
       }
@@ -206,7 +213,7 @@ const updateUserById = (req, res) => {
 
 module.exports = {
   loginhandler,
-  getUser,
+  getUserByUserId,
   getUserById,
   deleteById,
   createUser,

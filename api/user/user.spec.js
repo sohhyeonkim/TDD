@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const request = require("supertest");
 const app = require("../../index");
 const models = require("../../models");
+const { getUserByUserId } = require("../user/user.ctrl");
 const createAccessToken = require("./utils/createAccessToken");
 const comparePasswords = require("./utils/comparePasswords");
 
@@ -25,7 +26,17 @@ describe("Set up Database", () => {
       password: "helloworld123!",
       nickname: "test3_nickname",
     },
+    {
+      userId: "test7",
+      password: "helloworld123!",
+      nickname: "test7_nickname",
+    },
   ];
+  beforeEach(() => {
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+    app.use(cookieParser());
+  });
   beforeEach("sync DB", (done) => {
     models.sequelize.sync({ force: true }).then(() => {
       done();
@@ -34,27 +45,6 @@ describe("Set up Database", () => {
   beforeEach("bulk insert data", (done) => {
     models.User.bulkCreate(users);
     done();
-  });
-
-  describe("GET /users", () => {
-    // describe("성공시", () => {
-    //   it("유저 객체를 반환한다", (done) => {
-    //     request(app)
-    //       .get("/users")
-    //       .end((err, res) => {
-    //         res.body.should.have.property("userId", "test1");
-    //         res.body.should.have.property("password", "helloworld123!");
-    //         res.body.should.have.property("nickname", "test1_nickname");
-    //         done();
-    //       });
-    //   });
-    // });
-
-    describe("실패시", () => {
-      it("limit이 숫자형이 아니면 400을 응답한다", (done) => {
-        request(app).get("/users?limit=two").expect(400).end(done);
-      });
-    });
   });
 
   describe("GET /users/:id", () => {
@@ -105,7 +95,7 @@ describe("Set up Database", () => {
     };
     let body;
     let statusCode;
-    before("create new user", (done) => {
+    beforeEach("create new user", (done) => {
       request(app)
         .post("/users")
         .send(user)
@@ -165,21 +155,18 @@ describe("Set up Database", () => {
     });
   });
 
-  describe.only("POST /users 로그인", () => {
-    beforeEach(() => {
-      app.use(express.json());
-      app.use(express.urlencoded({ extended: true }));
-      app.use(cookieParser());
-    });
+  describe("POST /users 로그인", () => {
+    let hashedPassword;
+
     const user = {
       userId: "test5",
       password: "helloworld123!",
       nickname: "test5_nickname",
     };
-    let hashedPassword;
-    before("create new user", (done) => {
+    beforeEach("create new user", (done) => {
       request(app).post("/users").send(user).end(done);
     });
+
     before("get existing user's hashed password", (done) => {
       models.User.findOne({
         attributes: ["password"],
@@ -191,31 +178,62 @@ describe("Set up Database", () => {
         done();
       });
     });
-
     describe("성공시", () => {
       let accessToken;
+      it("getUserByUserId는 userId와 일치하는 유저 객체를 반환한다", async () => {
+        const existingUser = await getUserByUserId(user.userId);
+        existingUser.should.have.property("userId", user.userId);
+      });
+
       it("comparePasswords는 입력받은 비밀번호와 저장된 비밀번호를 비교해 true를 반환한다", () => {
         const isSame = comparePasswords(hashedPassword, hashedPassword);
+        isSame.should.be.true();
       });
       it("createAccessToken 함수는 유저데이터를 기반으로 accessToken을 생성한다", () => {
         accessToken = createAccessToken(user);
         accessToken.should.be.ok();
       });
-      it("loginHandler는 로그인 시 쿠키에 accessToken을 저장한다", (done) => {
+    });
+
+    describe("실패시", () => {
+      const notExistingUserId = 111;
+      it("loginHandler는 userId 또는 password가 없을 경우 400을 응답한다", (done) => {
+        request(app)
+          .post("/users/login")
+          .send({ userId: "hello" })
+          .expect(400)
+          .end(done);
+      });
+
+      it("getUserById 함수는 일치하는 userId가 없는 경우 null을 반환한다", async () => {
+        const existingUser = await getUserByUserId(notExistingUserId);
+
+        should.equal(null, existingUser);
+      });
+
+      it("loginHandler는 일치하는 userId가 없는 경우 400을 반환한다", (done) => {
+        request(app)
+          .post("/users/login")
+          .send({ userId: notExistingUserId, password: "helloworld123!" })
+          .expect(400)
+          .end(done);
+      });
+
+      it("comparePasswords 함수는 두 비밀번호가 일치하지 않는 경우 400을 응답한다", (done) => {
         request(app)
           .post("/users/login")
           .send({
             userId: user.userId,
-            password: user.password,
+            password: "wrongPassword",
           })
-          .set("Cookie", `accessToken=${accessToken}`)
-          .set("Content-Type", "application/json")
           .end((err, res) => {
-            res.cookies.should.have.property();
+            res.body.isLogin.should.not.be.true();
+            done();
           });
       });
     });
   });
+
   describe("PATCH /users/:id", () => {
     const userId = "test1_patched";
     const password = "helloworld123!_patched";
