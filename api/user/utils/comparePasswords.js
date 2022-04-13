@@ -10,17 +10,4 @@ const comparePasswords = async (inputPassword, storedPassword) => {
   }
 };
 
-// const passfunc = async (p1, p2) => {
-//   try {
-//     const res = await comparePasswords(p1, p2);
-
-//     console.log(res);
-//     return res;
-//   } catch (err) {
-//     console.log("tq");
-//   }
-// };
-
-// passfunc();
-
 module.exports = comparePasswords;

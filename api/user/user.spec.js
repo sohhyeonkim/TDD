@@ -4,7 +4,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const request = require("supertest");
 const app = require("../../index");
-const models = require("../../models");
+const models = require("../../models/index");
 const { getUserByUserId } = require("../user/user.ctrl");
 const createAccessToken = require("./utils/createAccessToken");
 const bcrypt = require("bcrypt");
@@ -181,7 +181,7 @@ describe("Set up Database", () => {
       });
       done();
     });
-    describe.only("성공시", () => {
+    describe("성공시", () => {
       let accessToken;
       it("getUserByUserId는 userId와 일치하는 유저 객체를 반환한다", async () => {
         const existingUser = await getUserByUserId(user.userId);

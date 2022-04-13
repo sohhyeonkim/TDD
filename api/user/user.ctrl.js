@@ -1,4 +1,4 @@
-const models = require("../../models");
+const models = require("../../models/index");
 const createHashedPassword = require("./utils/createHashedPassword.js");
 const comparePasswords = require("./utils/comparePasswords");
 const createAccessToken = require("./utils/createAccessToken");

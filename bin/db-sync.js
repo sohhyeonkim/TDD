@@ -1,4 +1,4 @@
-const models = require("../models");
+const models = require("../models/index");
 
 module.exports = () => {
   const options = {
