@@ -7,7 +7,7 @@ const app = require("../../index");
 const models = require("../../models");
 const { getUserByUserId } = require("../user/user.ctrl");
 const createAccessToken = require("./utils/createAccessToken");
-const comparePasswords = require("./utils/comparePasswords");
+const bcrypt = require("bcrypt");
 
 describe("Set up Database", () => {
   const users = [
@@ -176,22 +176,22 @@ describe("Set up Database", () => {
         where: {
           userId: user.userId,
         },
-      }).then((password) => {
-        //console.log("[hashed password from login]: ", password);
-        hashedPassword = password;
-        done();
+      }).then((user) => {
+        hashedPassword = user.password;
       });
+      done();
     });
-    describe("성공시", () => {
+    describe.only("성공시", () => {
       let accessToken;
       it("getUserByUserId는 userId와 일치하는 유저 객체를 반환한다", async () => {
         const existingUser = await getUserByUserId(user.userId);
         existingUser.should.have.property("userId", user.userId);
       });
 
-      it("comparePasswords는 입력받은 비밀번호와 저장된 비밀번호를 비교해 true를 반환한다", () => {
-        const isSame = comparePasswords(hashedPassword, hashedPassword);
-        isSame.should.be.true();
+      it("comparePasswords는 입력받은 비밀번호와 저장된 비밀번호를 비교해 true를 반환한다", async () => {
+        bcrypt.compare(user.password, hashedPassword).then((res) => {
+          res.should.be.true();
+        });
       });
       it("createAccessToken 함수는 유저데이터를 기반으로 accessToken을 생성한다", () => {
         accessToken = createAccessToken(user);

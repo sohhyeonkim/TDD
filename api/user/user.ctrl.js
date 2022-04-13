@@ -3,6 +3,9 @@ const createHashedPassword = require("./utils/createHashedPassword.js");
 const comparePasswords = require("./utils/comparePasswords");
 const createAccessToken = require("./utils/createAccessToken");
 const { Op } = require("sequelize");
+const bcrypt = require("bcrypt");
+
+const authHandler = async (req, res) => {};
 
 const loginhandler = async (req, res) => {
   try {
@@ -12,24 +15,32 @@ const loginhandler = async (req, res) => {
       });
     }
     const existingUser = await getUserByUserId(req.body.userId);
-
     if (!existingUser) {
       return res.status(400).send({
         message: "user not found",
       });
     }
-    const hashedPassword = await createHashedPassword(req.body.password);
 
-    const isSame = comparePasswords(existingUser.password, hashedPassword);
+    // const isSame = await comparePasswords(
+    //   req.body.password,
+    //   existingUser.password
+    // );
+
+    const isSame = await bcrypt.compare(
+      req.body.password,
+      existingUser.password
+    );
+
     if (isSame) {
       delete existingUser.password;
-      const accessToken = createAccessToken(existingUser);
+      //console.log(existingUser.dataValues);
+      const accessToken = createAccessToken(existingUser.dataValues);
       res
         .cookie("accessToken", accessToken, {
           maxAge: 1000 * 60 * 60,
           httpOnly: true,
           secure: true,
-          sameSite: none,
+          sameSite: "none",
         })
         .status(200)
         .json({
@@ -102,7 +113,8 @@ const createUser = async (req, res) => {
     });
   }
   const hash = await createHashedPassword(password);
-  //console.log("[hash]: ", hash);
+  //
+
   models.User.findOrCreate({
     where: {
       [Op.or]: [{ userId }, { nickname }],
@@ -219,4 +231,5 @@ module.exports = {
   createUser,
   validationCheck,
   updateUserById,
+  authHandler,
 };
