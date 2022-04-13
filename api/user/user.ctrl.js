@@ -18,6 +18,15 @@ const authHandler = async (req, res) => {
   return res.send("authHandler testing");
 };
 
+const logoutHandelr = async (req, res) => {
+  try {
+    res.clearCookie("accessToken", { path: "/" });
+    return res.status(205).end();
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 const loginhandler = async (req, res) => {
   try {
     if (!req.body.userId && !req.body.password) {
@@ -228,6 +237,7 @@ const updateUserById = (req, res) => {
 
 module.exports = {
   loginhandler,
+  logoutHandelr,
   getUserByUserId,
   getUserById,
   deleteById,
