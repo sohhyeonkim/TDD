@@ -158,7 +158,7 @@ describe("Set up Database", () => {
     });
   });
 
-  describe("POST /users 로그인", () => {
+  describe("POST /users/login 로그인", () => {
     let hashedPassword;
 
     const user = {

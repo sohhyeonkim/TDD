@@ -1,11 +1,22 @@
-const models = require("../../models/index");
-const createHashedPassword = require("./utils/createHashedPassword.js");
-const comparePasswords = require("./utils/comparePasswords");
-const createAccessToken = require("./utils/createAccessToken");
 const { Op } = require("sequelize");
 const bcrypt = require("bcrypt");
+const models = require("../../models/index");
+const createHashedPassword = require("./utils/createHashedPassword.js");
+const createAccessToken = require("./utils/createAccessToken");
+const decodeToken = require("../user/utils/decodeAccessToken");
 
-const authHandler = async (req, res) => {};
+const authHandler = async (req, res) => {
+  const { accessToken } = req.cookies;
+  console.log("[accessToken]: ", accessToken);
+  if (!accessToken) {
+    return res.status(400).json({
+      message: "no accessToken",
+    });
+  }
+  const decoded = await decodeToken(accessToken);
+  console.log("[decoded token]: ", decoded);
+  return res.send("authHandler testing");
+};
 
 const loginhandler = async (req, res) => {
   try {

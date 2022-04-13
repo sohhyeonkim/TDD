@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "NODE_ENV=test mocha api/user/user.spec.js -w",
-    "start": "node bin/server.js"
+    "start": "nodemon --watch bin/server.js"
   },
   "repository": {
     "type": "git",
