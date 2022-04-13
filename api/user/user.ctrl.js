@@ -21,11 +21,6 @@ const loginhandler = async (req, res) => {
       });
     }
 
-    // const isSame = await comparePasswords(
-    //   req.body.password,
-    //   existingUser.password
-    // );
-
     const isSame = await bcrypt.compare(
       req.body.password,
       existingUser.password
@@ -33,7 +28,7 @@ const loginhandler = async (req, res) => {
 
     if (isSame) {
       delete existingUser.password;
-      //console.log(existingUser.dataValues);
+
       const accessToken = createAccessToken(existingUser.dataValues);
       res
         .cookie("accessToken", accessToken, {
@@ -113,7 +108,6 @@ const createUser = async (req, res) => {
     });
   }
   const hash = await createHashedPassword(password);
-  //
 
   models.User.findOrCreate({
     where: {
@@ -126,7 +120,6 @@ const createUser = async (req, res) => {
     },
   }).then(([user, created]) => {
     if (created) {
-      //console.log(user.password);
       return res.status(201).json({
         isCreated: true,
       });
@@ -146,7 +139,6 @@ const validationCheck = (req, res) => {
         userId,
       },
     }).then((user) => {
-      //console.log(user);
       if (user) {
         return res.status(409).end();
       }
@@ -177,7 +169,7 @@ const updateUserById = (req, res) => {
   if (!userId && !password && !nickname) {
     return res.status(400).end();
   }
-  // id로 유저를 찾을 수 없는 경우 404를 응답한다
+
   models.User.findOne({
     where: {
       id,
