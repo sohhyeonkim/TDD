@@ -5,6 +5,7 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const userRouter = require("./api/user");
+const postRouter = require("./api/post");
 
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan("dev"));
@@ -21,4 +22,6 @@ app.use(
   })
 );
 app.use("/users", userRouter);
+app.use("/posts", postRouter);
+
 module.exports = app;
