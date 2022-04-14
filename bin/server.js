@@ -1,5 +1,6 @@
 const app = require("../index");
 const syncDB = require("./db-sync");
+const fs = require("fs");
 
 syncDB().then(() => {
   console.log("Sync Database");
