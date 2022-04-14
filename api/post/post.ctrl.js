@@ -35,10 +35,10 @@ const getAllPosts = async (req, res) => {
 
 const getPostBypostId = async (req, res) => {
   const postId = parseInt(req.params.postId, 10);
-  if(Number.isNaN(postId) {
+  if (Number.isNaN(postId)) {
     return res.status(400).end();
   }
-  try{
+  try {
     const post = await models.Post.findOne({
       where: {
         id: postId,
@@ -47,7 +47,7 @@ const getPostBypostId = async (req, res) => {
     return res.json({
       post,
     });
-  } catch(err) {
+  } catch (err) {
     console.log(err);
   }
 };
