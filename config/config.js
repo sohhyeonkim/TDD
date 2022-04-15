@@ -10,9 +10,9 @@ const development = {
   logging: false,
 };
 const test = {
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  username: process.env.DB_TEST_USERNAME,
+  password: process.env.DB_TEST_PASSWORD,
+  database: process.env.DB_TEST_NAME,
   host: "127.0.0.1",
   dialect: "mysql",
   logging: false,

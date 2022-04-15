@@ -24,4 +24,12 @@ app.use(
 app.use("/users", userRouter);
 app.use("/posts", postRouter);
 
+app.use((err, req, res, next) => {
+  const errMessage = {
+    name: err.name,
+    message: err.message,
+  };
+  res.json(errMessage);
+});
+
 module.exports = app;
