@@ -1,4 +1,5 @@
 const models = require("../../models/index");
+const isAvailableUserId = require("../common_utils/getUserById");
 
 const createPost = async (req, res, next) => {
   const content = req.body.content;
@@ -12,6 +13,10 @@ const createPost = async (req, res, next) => {
       });
     } else {
       console.log("createPost working");
+      const isAvailableReqId = await isAvailableUserId(req.id);
+      if (!isAvailableReqId) {
+        return res.status(403).end();
+      }
       await models.Post.create({
         content,
         img: imgUrl,
