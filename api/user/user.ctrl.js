@@ -3,23 +3,11 @@ const bcrypt = require("bcrypt");
 const models = require("../../models/index");
 const createHashedPassword = require("./utils/createHashedPassword.js");
 const createAccessToken = require("./utils/createAccessToken");
-const decodeToken = require("../user/utils/decodeAccessToken");
-
-const authHandler = async (req, res) => {
-  const { accessToken } = req.cookies;
-  console.log("[accessToken]: ", accessToken);
-  if (!accessToken) {
-    return res.status(400).json({
-      message: "no accessToken",
-    });
-  }
-  const decoded = await decodeToken(accessToken);
-  console.log("[decoded token]: ", decoded);
-  return res.send("authHandler testing");
-};
+const { exist } = require("should");
 
 const logoutHandelr = async (req, res) => {
   try {
+    console.log("logoutHandler working");
     res.clearCookie("accessToken", { path: "/" });
     return res.status(205).end();
   } catch (err) {
@@ -27,51 +15,51 @@ const logoutHandelr = async (req, res) => {
   }
 };
 
-const loginhandler = async (req, res) => {
-  try {
-    if (!req.body.userId && !req.body.password) {
-      return res.status(400).send({
-        message: "userId or password not provided",
-      });
-    }
-    const existingUser = await getUserByUserId(req.body.userId);
-    if (!existingUser) {
-      return res.status(400).send({
-        message: "user not found",
-      });
-    }
+// const loginhandler = async (req, res) => {
+//   try {
+//     if (!req.body.userId && !req.body.password) {
+//       return res.status(400).send({
+//         message: "userId or password not provided",
+//       });
+//     }
+//     const existingUser = await getUserByUserId(req.body.userId);
+//     if (!existingUser) {
+//       return res.status(400).send({
+//         message: "user not found",
+//       });
+//     }
 
-    const isSame = await bcrypt.compare(
-      req.body.password,
-      existingUser.password
-    );
+//     const isSame = await bcrypt.compare(
+//       req.body.password,
+//       existingUser.password
+//     );
 
-    if (isSame) {
-      delete existingUser.password;
+//     if (isSame) {
+//       delete existingUser.dataValues.password;
 
-      const accessToken = createAccessToken(existingUser.dataValues);
-      res
-        .cookie("accessToken", accessToken, {
-          maxAge: 1000 * 60 * 60,
-          httpOnly: true,
-          secure: true,
-          sameSite: "none",
-        })
-        .status(200)
-        .json({
-          isLogin: true,
-        })
-        .end();
-    } else {
-      return res.status(400).json({
-        isLogin: false,
-        message: "wrong password",
-      });
-    }
-  } catch (err) {
-    console.log(err);
-  }
-};
+//       const accessToken = createAccessToken(existingUser.dataValues);
+//       res
+//         .cookie("accessToken", accessToken, {
+//           maxAge: 9 * 60 * 60 * 1000 + 1000 * 60 * 60,
+//           httpOnly: true,
+//           //secure: true,
+//           sameSite: "none",
+//         })
+//         .status(200)
+//         .json({
+//           isLogin: true,
+//         })
+//         .end();
+//     } else {
+//       return res.status(400).json({
+//         isLogin: false,
+//         message: "wrong password",
+//       });
+//     }
+//   } catch (err) {
+//     console.log(err);
+//   }
+// };
 
 const getUserByUserId = async (userId) => {
   try {
@@ -236,7 +224,7 @@ const updateUserById = (req, res) => {
 };
 
 module.exports = {
-  loginhandler,
+  //loginhandler,
   logoutHandelr,
   getUserByUserId,
   getUserById,
@@ -244,5 +232,4 @@ module.exports = {
   createUser,
   validationCheck,
   updateUserById,
-  authHandler,
 };
