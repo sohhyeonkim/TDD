@@ -1,8 +1,9 @@
 const models = require("../../models/index");
 
 const createPost = async (req, res, next) => {
-  const content = req.body.text ? req.body.text : "";
-  const imgUrl = req.file.location ? req.file.location : "";
+  const content = req.body.content;
+  const imgUrl = req.file.location || null;
+
   try {
     if (!content) {
       return res.status(400).json({
@@ -10,9 +11,11 @@ const createPost = async (req, res, next) => {
         message: "content required",
       });
     } else {
+      console.log("createPost working");
       await models.Post.create({
         content,
         img: imgUrl,
+        UserId: req.id,
       });
       return res.json({
         isUploaded: true,

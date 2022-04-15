@@ -28,9 +28,8 @@ app.use(async (req, res, next) => {
   console.log("[accessToken]: ", accessToken);
 
   try {
-    // console.log("next");
     const decoded = await decodeToken(accessToken);
-    //console.log("[decoded token]: ", decoded);
+    req.id = decoded.id;
   } catch (err) {
     console.log(err);
     next(err);
