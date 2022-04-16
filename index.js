@@ -54,6 +54,10 @@ app.use((err, req, res, next) => {
     errMessage.message = "로그인 필요";
     next("/users/login");
   }
+  if (err.name === "MulterError") {
+    errMessage.name = err.name;
+    errMessage.message = "이미지 파일은 5MB이하로만 가능";
+  }
   return res.json(errMessage);
 });
 

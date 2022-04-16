@@ -27,7 +27,7 @@ describe("Set up Database", () => {
           .post("/posts")
           .set("id", "1")
           .field("content", "test content")
-          .attach("image", __dirname + "/testImages/testImg.jpg")
+          .attach("image", __dirname + "/testImages/lt4mb.jpg")
           .end((err, res) => {
             if (err) {
               console.log(err);
@@ -40,11 +40,21 @@ describe("Set up Database", () => {
       });
     });
     describe("실패시", () => {
+      it("이미지 용량이 4MB 이상인 경우 에러를 응답한다", (done) => {
+        request(app)
+          .post("/posts")
+          .set("id", "1")
+          .attach("image", __dirname + "/testImages/gt4mb.png")
+          .end((err, res) => {
+            res.body.should.have.property("name", "MulterError");
+            done();
+          });
+      });
       it("content가 없는 경우 400을 응답한다", (done) => {
         request(app)
           .post("/posts")
           .set("id", "1")
-          .attach("image", __dirname + "/testImages/testImg.jpg")
+          .attach("image", __dirname + "/testImages/lt4mb.jpg")
           .expect(400)
           .end(done);
       });
@@ -54,7 +64,7 @@ describe("Set up Database", () => {
           .post("/posts")
           .set("id", "11111")
           .field("content", "test content")
-          .attach("image", __dirname + "/testImages/testImg.jpg")
+          .attach("image", __dirname + "/testImages/lt4mb.jpg")
           .expect(403)
           .end(done);
       });
