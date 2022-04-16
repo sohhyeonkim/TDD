@@ -23,19 +23,23 @@ app.use(
   })
 );
 app.post("/users/login", loginHandler);
-app.use(async (req, res, next) => {
-  const { accessToken } = req.cookies;
-  console.log("[accessToken]: ", accessToken);
+if (process.env.NODE_ENV !== "test") {
+  app.use(async (req, res, next) => {
+    const { accessToken } = req.cookies;
+    console.log("[accessToken]: ", accessToken);
 
-  try {
-    const decoded = await decodeToken(accessToken);
-    req.id = decoded.id;
-  } catch (err) {
-    console.log(err);
-    next(err);
-  }
-  return next();
-});
+    try {
+      const decoded = await decodeToken(accessToken);
+      req.headers.id = decoded.id;
+      console.log("[req.headers]: ", req.headers);
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+    return next();
+  });
+}
+
 app.use("/users", userRouter);
 app.use("/posts", postRouter);
 

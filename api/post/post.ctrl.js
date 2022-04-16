@@ -12,16 +12,18 @@ const createPost = async (req, res, next) => {
         message: "content required",
       });
     } else {
-      console.log("createPost working");
-      const isAvailableReqId = await isAvailableUserId(req.id);
+      const isAvailableReqId = await isAvailableUserId(
+        parseInt(req.headers.id, 10)
+      );
       if (!isAvailableReqId) {
         return res.status(403).end();
       }
       await models.Post.create({
         content,
         img: imgUrl,
-        UserId: req.id,
+        UserId: parseInt(req.headers.id, 10),
       });
+
       return res.json({
         isUploaded: true,
         imgUrl,

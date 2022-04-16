@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha api/user/user.spec.js -w",
+    "test": "NODE_ENV=test mocha api/post/post.spec.js -w",
     "start": "nodemon bin/server.js"
   },
   "repository": {
