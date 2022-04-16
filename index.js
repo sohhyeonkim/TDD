@@ -44,20 +44,21 @@ app.use("/users", userRouter);
 app.use("/posts", postRouter);
 
 app.use((err, req, res, next) => {
-  const errMessage = {};
+  const errMessage = { name: err.name };
   if (err.name === "TokenExpiredError") {
-    errMessage.name = err.name;
     errMessage.message = "재로그인 필요";
   }
   if (err.name === "JsonWebTokenError") {
-    errMessage.name = err.name;
     errMessage.message = "로그인 필요";
     next("/users/login");
   }
   if (err.name === "MulterError") {
-    errMessage.name = err.name;
-    errMessage.message = "이미지 파일은 5MB이하로만 가능";
+    errMessage.message = "이미지 파일은 4MB이하로만 가능";
   }
+  if (err.name === "MissingRequiredParameter") {
+    errMessage.message = "잘못된 s3 이미지 버킷 키";
+  }
+  console.log(errMessage);
   return res.json(errMessage);
 });
 
