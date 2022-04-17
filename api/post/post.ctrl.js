@@ -190,9 +190,7 @@ const getAllPosts = async (req, res, next) => {
     const posts = await models.Post.findAll({
       order: [["createdAt", "DESC"]],
     });
-    return res.json({
-      posts,
-    });
+    return res.json(posts);
   } catch (err) {
     console.log(err);
     next(err);
@@ -210,9 +208,12 @@ const getPostBypostId = async (req, res) => {
         id: postId,
       },
     });
-    return res.json({
-      post,
-    });
+    if (!post) {
+      return res.status(400).json({
+        message: "invalid postId",
+      });
+    }
+    return res.json(post);
   } catch (err) {
     console.log(err);
     next(err);

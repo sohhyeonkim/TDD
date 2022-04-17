@@ -29,6 +29,58 @@ describe("Set up Database", () => {
     });
   }
 
+  describe.only("GET /posts", () => {
+    let fileKey;
+    const content = "test content";
+    beforeEach("create Post", (done) => {
+      request(app)
+        .post("/posts")
+        .set("id", "1")
+        .field("content", content)
+        .attach("image", __dirname + "/testImages/lt4mb.png")
+        .end((err, res) => {
+          fileKey = res.body.imgUrl;
+          done();
+        });
+    });
+    describe("성공시", () => {
+      it("모든 게시물 조회시 게시물 객체들이 배열에 저장되어 반환한다", (done) => {
+        request(app)
+          .get("/posts")
+          .end((err, res) => {
+            res.body.should.be.instanceOf(Array);
+            res.body[0].should.have.property("content", content);
+            res.body[0].should.have.property("img", fileKey);
+            res.body[0].should.have.property("UserId", 1);
+            done();
+          });
+      });
+
+      it("id로 특정 게시물 조회시 params와 일치하는 id의 게시물 객체를 반환한다", (done) => {
+        request(app)
+          .get("/posts/1")
+          .end((err, res) => {
+            res.body.should.be.instanceOf(Object);
+            res.body.should.have.property("id", 1);
+            done();
+          });
+      });
+    });
+    describe("실패시", () => {
+      it("postId가 숫자가 아닌 경우 400을 응답한다", (done) => {
+        request(app).get("/posts/one").expect(400).end(done);
+      });
+      it("유효하지 않은 postId인 경우 400을 응답한다", (done) => {
+        request(app)
+          .get("/posts/1111")
+          .end((err, res) => {
+            should.equal(res.body.message, "invalid postId");
+            done();
+          });
+      });
+    });
+  });
+
   describe("POST  /posts", () => {
     describe("성공시", () => {
       it("isUploaded가 true이고, imgUrl에 s3버킷 주소가 저장된 객체를 반환한다", (done) => {
