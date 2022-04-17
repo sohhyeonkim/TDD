@@ -44,7 +44,7 @@ app.use("/users", userRouter);
 app.use("/posts", postRouter);
 
 app.use((err, req, res, next) => {
-  const errMessage = { name: err.name };
+  const errMessage = { name: err.name, message: err.stack };
   if (err.name === "TokenExpiredError") {
     errMessage.message = "재로그인 필요";
   }
@@ -58,7 +58,10 @@ app.use((err, req, res, next) => {
   if (err.name === "MissingRequiredParameter") {
     errMessage.message = "잘못된 s3 이미지 버킷 키";
   }
-  console.log(errMessage);
+  if (err.name === "TypeError") {
+    errMessage.message = "게시물 patch 요청에서 바디와 이미지 파일이 모두 없음";
+  }
+  //console.log(errMessage);
   return res.json(errMessage);
 });
 

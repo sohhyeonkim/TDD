@@ -3,7 +3,6 @@ const request = require("supertest");
 const express = require("express");
 const app = require("../../index");
 const models = require("../../models/index");
-const path = require("path");
 
 describe("Set up Database", () => {
   const users = [
@@ -110,11 +109,24 @@ describe("Set up Database", () => {
 
     describe("실패시", () => {
       it("postId가 숫자가 아닌 경우 400을 응답한다", (done) => {
-        request(app).delete("/posts/one").expect(400).end(done);
+        request(app)
+          .delete("/posts/one")
+          .send({
+            fileKey,
+          })
+          .expect(400)
+          .end(done);
       });
 
       it("유효하지 않는 userId인 경우 403을 응답한다", (done) => {
-        request(app).delete("/posts/1").set("id", "1111").expect(403).end(done);
+        request(app)
+          .delete("/posts/1")
+          .set("id", "1111")
+          .send({
+            fileKey,
+          })
+          .expect(403)
+          .end(done);
       });
       it("유효하지 않은 postId인 경우 400을 응답한다", (done) => {
         request(app)
@@ -136,6 +148,94 @@ describe("Set up Database", () => {
           })
           .end((err, res) => {
             res.body.should.have.property("name", "MissingRequiredParameter");
+            done();
+          });
+      });
+    });
+  });
+
+  describe("PATCH /posts", () => {
+    let fileKey;
+    beforeEach("create Post", (done) => {
+      request(app)
+        .post("/posts")
+        .set("id", "1")
+        .field("content", "test content")
+        .attach("image", __dirname + "/testImages/lt4mb.png")
+        .end((err, res) => {
+          fileKey = res.body.imgUrl;
+          done();
+        });
+    });
+    describe("성공시", () => {
+      it("콘텐츠만 변경한 경우 'content updated'을 응답한다", (done) => {
+        request(app)
+          .patch("/posts/1")
+          .set("id", "1")
+          .field("content", "content to update")
+          .end((err, res) => {
+            should.equal(res.body.message, "content updated");
+            done();
+          });
+      });
+      it("이미지만 변경한 경우 'image updated'를 응답한다", (done) => {
+        request(app)
+          .patch("/posts/1")
+          .set("id", "1")
+          .attach("image", __dirname + "/testImages/lt4mb.jpg")
+          .field("fileKey", fileKey)
+          .end((err, res) => {
+            should.equal(res.body.message, "image updated");
+            done();
+          });
+      });
+      it("이미지와 콘텐츠를 모두 변경한 경우 'post updated'를 응답한다", (done) => {
+        request(app)
+          .patch("/posts/1")
+          .set("id", "1")
+          .field("content", "content to update2")
+          .field("fileKey", fileKey)
+          .attach("image", __dirname + "/testImages/lt4mb2.png")
+          .end((err, res) => {
+            should.equal(res.body.message, "post updated");
+            done();
+          });
+      });
+    });
+
+    describe("실패시", () => {
+      it("postId가 숫자가 아닌 경우 400을 응답한다", (done) => {
+        request(app).patch("/posts/one").expect(400).end(done);
+      });
+      it("유효하지 않은 postId인 경우 'invalid postId'를 응답한다", (done) => {
+        request(app)
+          .patch("/posts/1111")
+          .set("id", "1")
+          .field("content", "content to update")
+          .end((err, res) => {
+            should.equal(res.body.message, "invalid postId");
+            done();
+          });
+      });
+      it("이미지를 변경한 경우 fileKey가 없으면 's3 object deletion failed'를 응답한다", (done) => {
+        request(app)
+          .patch("/posts/1")
+          .set("id", "1")
+          .attach("image", __dirname + "/testImages/lt4mb2.png")
+          .end((err, res) => {
+            should.equal(res.body.message, "s3 object deletion failed");
+            done();
+          });
+      });
+      it("콘텐츠와 이미지 모두 없는 경우 400을 응답한다", (done) => {
+        request(app)
+          .patch("/posts/1")
+          .set("id", "1")
+          .end((err, res) => {
+            should.equal(
+              res.body.message,
+              "게시물 patch 요청에서 바디와 이미지 파일이 모두 없음"
+            );
             done();
           });
       });
